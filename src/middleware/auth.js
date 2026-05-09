@@ -1,20 +1,21 @@
 const jwt = require('jsonwebtoken');
+const db = require('../database/connection');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'segredo_sistema_escolar_2026';
 
 function authenticate(req, res, next) {
     const authHeader = req.headers['authorization'];
-    
+
     if (!authHeader) {
         return res.status(401).json({ error: 'Token não fornecido' });
     }
-    
+
     const token = authHeader.split(' ')[1];
-    
+
     if (!token) {
         return res.status(401).json({ error: 'Token inválido' });
     }
-    
+
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
         req.usuarioId = decoded.id;
@@ -27,69 +28,53 @@ function authenticate(req, res, next) {
     }
 }
 
-// Professor pode acessar apenas sua turma
 function isProfessor(req, res, next) {
-    if (req.usuarioPerfil === 'professor') {
-        // Buscar turma do professor
-        const db = require('../database/connection');
-        db.get(
-            'SELECT turma_id FROM turma_professores WHERE professor_id = ? LIMIT 1',
-            [req.usuarioId],
-            (err, result) => {
-                if (err || !result) {
-                    return res.status(403).json({ error: 'Professor não vinculado a nenhuma turma' });
-                }
-                req.turmaId = result.turma_id;
-                next();
-            }
-        );
-    } else {
-        next();
+    if (req.usuarioPerfil !== 'professor') {
+        return res.status(403).json({ error: 'Acesso negado. Apenas professores.' });
     }
+    next();
 }
 
-// Coordenador ou superior
 function isCoordenador(req, res, next) {
-    if (req.usuarioPerfil !== 'coordenador' && req.usuarioPerfil !== 'diretor') {
-        return res.status(403).json({ 
-            error: 'Acesso negado. Apenas coordenadores podem realizar esta ação.' 
-        });
+    if (req.usuarioPerfil !== 'coordenador' && req.usuarioPerfil !== 'direcao') {
+        return res.status(403).json({ error: 'Acesso negado. Apenas coordenadores ou direção.' });
     }
     next();
 }
 
-// Apenas Diretor (Root)
+function isDiretorOuCoordenador(req, res, next) {
+    if (req.usuarioPerfil === 'direcao' || req.usuarioPerfil === 'coordenador') {
+        return next();
+    }
+    return res.status(403).json({ error: 'Acesso negado. Apenas direção ou coordenadores.' });
+}
+
 function isDiretor(req, res, next) {
-    if (req.usuarioPerfil !== 'diretor') {
-        return res.status(403).json({ 
-            error: 'Acesso negado. Apenas o Diretor pode realizar esta ação.' 
-        });
+    if (req.usuarioPerfil !== 'direcao') {
+        return res.status(403).json({ error: 'Acesso negado. Apenas direção.' });
     }
     next();
 }
 
-// Verificar se pode acessar o aluno (professor só vê sua turma)
 function canAccessAluno(req, res, next) {
-    if (req.usuarioPerfil === 'diretor') {
+    const alunoId = req.params.id || req.params.alunoId || req.body.aluno_id;
+
+    if (!alunoId) return next();
+
+    if (req.usuarioPerfil === 'direcao' || req.usuarioPerfil === 'coordenador') {
         return next();
     }
-    
-    if (req.usuarioPerfil === 'coordenador') {
-        return next();
-    }
-    
+
     if (req.usuarioPerfil === 'professor') {
-        const db = require('../database/connection');
-        const alunoId = req.params.id || req.body.aluno_id;
-        
-        db.get(`
+        const sql = `
             SELECT a.* FROM alunos a
             JOIN turma_professores tp ON a.turma_id = tp.turma_id
             WHERE a.id = ? AND tp.professor_id = ?
-        `, [alunoId, req.usuarioId], (err, result) => {
-            if (err || !result) {
-                return res.status(403).json({ error: 'Acesso negado. Aluno não pertence à sua turma.' });
-            }
+        `;
+
+        db.get(sql, [alunoId, req.usuarioId], (err, result) => {
+            if (err) return res.status(500).json({ error: err.message });
+            if (!result) return res.status(403).json({ error: 'Acesso negado. Aluno não pertence à sua turma.' });
             next();
         });
     } else {
@@ -97,10 +82,11 @@ function canAccessAluno(req, res, next) {
     }
 }
 
-module.exports = { 
-    authenticate, 
-    isProfessor, 
-    isCoordenador, 
+module.exports = {
+    authenticate,
+    isProfessor,
+    isCoordenador,
     isDiretor,
-    canAccessAluno 
+    isDiretorOuCoordenador,
+    canAccessAluno
 };

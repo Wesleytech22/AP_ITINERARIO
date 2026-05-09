@@ -1,5 +1,7 @@
+// src/app.js
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -9,29 +11,31 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static('.'));
 
 // Rotas
 const authRoutes = require('./routes/authRoutes');
 const alunoRoutes = require('./routes/alunoRoutes');
 const turmaRoutes = require('./routes/turmaRoutes');
+const usuarioRoutes = require('./routes/usuarioRoutes');
+const emailRoutes = require('./routes/emailRoutes');
+const notasRoutes = require('./routes/notasRoutes');
+const frequenciaRoutes = require('./routes/frequenciaRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/alunos', alunoRoutes);
 app.use('/api/turmas', turmaRoutes);
+app.use('/api/usuarios', usuarioRoutes);
+app.use('/api/email', emailRoutes);
+app.use('/api/notas', notasRoutes);
+app.use('/api/frequencias', frequenciaRoutes);
 
-// Rota principal (mantendo a antiga para compatibilidade)
 app.get('/', (req, res) => {
-    res.json({ message: 'API Escola funcionando!' });
+    res.json({ message: 'API Help School funcionando!' });
 });
 
-app.get('/alunos', (req, res) => {
-    res.json({ message: 'Use /api/alunos para acessar os alunos' });
-});
-
-// Iniciar servidor
 app.listen(PORT, () => {
-    console.log(`Ì∫Ä Servidor rodando na porta ${PORT}`);
-    console.log(`Ì≥å Teste: http://localhost:${PORT}/`);
-    console.log(`Ì≥å Login: POST http://localhost:${PORT}/api/auth/login`);
-    console.log(`Ì≥å Alunos: GET http://localhost:${PORT}/api/alunos`);
+    console.log(`üöÄ Servidor rodando na porta ${PORT}`);
+    console.log(`üìã Acesse: http://localhost:${PORT}/index.html`);
+    console.log(`üîê Login: POST http://localhost:${PORT}/api/auth/login`);
 });

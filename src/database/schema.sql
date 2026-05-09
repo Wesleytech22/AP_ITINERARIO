@@ -118,6 +118,40 @@ CREATE TABLE IF NOT EXISTS logs_alteracao (
 );
 
 -- ==========================================
+-- 9. TABELA DE NOTAS
+-- ==========================================
+CREATE TABLE IF NOT EXISTS notas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    aluno_id INTEGER NOT NULL,
+    disciplina_id INTEGER NOT NULL,
+    bimestre INTEGER NOT NULL,
+    nota REAL,
+    created_by INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (aluno_id) REFERENCES alunos(id) ON DELETE CASCADE,
+    FOREIGN KEY (disciplina_id) REFERENCES disciplinas(id),
+    FOREIGN KEY (created_by) REFERENCES usuarios(id),
+    UNIQUE(aluno_id, disciplina_id, bimestre)
+);
+
+-- ==========================================
+-- 10. TABELA DE FREQUENCIA
+-- ==========================================
+CREATE TABLE IF NOT EXISTS frequencias (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    aluno_id INTEGER NOT NULL,
+    data DATE NOT NULL,
+    presente BOOLEAN DEFAULT 1,
+    disciplina_id INTEGER,
+    created_by INTEGER,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (aluno_id) REFERENCES alunos(id) ON DELETE CASCADE,
+    FOREIGN KEY (disciplina_id) REFERENCES disciplinas(id),
+    FOREIGN KEY (created_by) REFERENCES usuarios(id),
+    UNIQUE(aluno_id, data, disciplina_id)
+);
+
+-- ==========================================
 -- INSERIR DADOS INICIAIS
 -- ==========================================
 
@@ -130,43 +164,44 @@ INSERT OR IGNORE INTO usuarios (nome, email, senha, perfil) VALUES
 
 -- Turmas
 INSERT OR IGNORE INTO turmas (nome, ano, turno) VALUES
-('3 Ano A', '3', 'manha'),
-('3 Ano B', '3', 'manha'),
-('3 Ano C', '3', 'tarde'),
-('2 Ano A', '2', 'manha'),
-('2 Ano B', '2', 'tarde'),
-('1 Ano A', '1', 'manha');
+('3º Ano A', '3', 'manha'),
+('3º Ano B', '3', 'manha'),
+('3º Ano C', '3', 'tarde'),
+('2º Ano A', '2', 'manha'),
+('2º Ano B', '2', 'tarde'),
+('1º Ano A', '1', 'manha');
 
 -- Disciplinas
 INSERT OR IGNORE INTO disciplinas (nome, carga_horaria) VALUES
-('Matematica', 120),
-('Portugues', 120),
-('Ciencias', 90),
-('Historia', 90),
+('Matemática', 120),
+('Português', 120),
+('Ciências', 90),
+('História', 90),
 ('Geografia', 90),
-('Ingles', 60),
-('Educacao Fisica', 60),
+('Inglês', 60),
+('Educação Física', 60),
 ('Artes', 60);
 
 -- Vincular professores as turmas
-INSERT OR IGNORE INTO turma_professores (turma_id, professor_id, disciplina_id) VALUES (1, 2, 1);
-INSERT OR IGNORE INTO turma_professores (turma_id, professor_id, disciplina_id) VALUES (1, 3, 2);
-INSERT OR IGNORE INTO turma_professores (turma_id, professor_id, disciplina_id) VALUES (2, 2, 1);
-INSERT OR IGNORE INTO turma_professores (turma_id, professor_id, disciplina_id) VALUES (2, 2, 2);
+INSERT OR IGNORE INTO turma_professores (turma_id, professor_id, disciplina_id) VALUES 
+(1, 2, 1),
+(1, 3, 2),
+(2, 2, 1),
+(2, 3, 2);
 
 -- Alunos de exemplo
 INSERT OR IGNORE INTO alunos (nome, matricula, turma_id, responsavel, contato, created_by) VALUES
-('Joao Silva', '2024001', 1, 'Maria Silva', '(11) 99999-1111', 1),
-('Maria Santos', '2024002', 1, 'Jose Santos', '(11) 99999-2222', 1),
-('Pedro Oliveira', '2024003', 2, 'Ana Oliveira', '(11) 99999-3333', 1),
-('Ana Carolina', '2024004', 3, 'Carlos Souza', '(11) 97777-4444', 1),
-('Lucas Ferreira', '2024005', 1, 'Patricia Ferreira', '(11) 98888-5555', 1);
+('João Silva', '2024001', 1, 'maria@email.com', '(11) 99999-1111', 1),
+('Maria Santos', '2024002', 1, 'jose@email.com', '(11) 99999-2222', 1),
+('Pedro Oliveira', '2024003', 2, 'ana@email.com', '(11) 99999-3333', 1),
+('Ana Carolina', '2024004', 3, 'carlos@email.com', '(11) 97777-4444', 1),
+('Lucas Ferreira', '2024005', 1, 'patricia@email.com', '(11) 98888-5555', 1);
 
--- Ocorrencias exemplo
+-- Ocorrências exemplo
 INSERT OR IGNORE INTO ocorrencias (aluno_id, tipo, descricao, data, created_by) VALUES
 (1, 'Atraso', 'Aluno chegou 30 minutos atrasado', '2026-05-01', 1),
-(2, 'Comportamento', 'Participacao ativa em aula', '2026-05-02', 2),
-(1, 'Nota', 'Baixo desempenho em matematica', '2026-05-03', 2),
+(2, 'Comportamento', 'Participação ativa em aula', '2026-05-02', 2),
+(1, 'Nota', 'Baixo desempenho em matemática', '2026-05-03', 2),
 (3, 'Falta', 'Faltou sem justificativa', '2026-05-03', 1);
 
 -- ==========================================
@@ -175,43 +210,3 @@ INSERT OR IGNORE INTO ocorrencias (aluno_id, tipo, descricao, data, created_by) 
 
 -- Ativar suporte a chaves estrangeiras
 PRAGMA foreign_keys = ON;
-
--- Ver todas as tabelas criadas
-SELECT name FROM sqlite_master WHERE type='table' ORDER BY name;
-
--- Ver usuarios
-SELECT '=== USUARIOS ===' as '';
-SELECT id, nome, email, perfil FROM usuarios;
-
--- Ver turmas
-SELECT '=== TURMAS ===' as '';
-SELECT * FROM turmas;
-
--- Ver disciplinas
-SELECT '=== DISCIPLINAS ===' as '';
-SELECT * FROM disciplinas;
-
--- Ver vinculos professor-turma-disciplina
-SELECT '=== VINCULOS ===' as '';
-SELECT 
-    t.nome as turma,
-    u.nome as professor,
-    d.nome as disciplina
-FROM turma_professores tp
-JOIN turmas t ON tp.turma_id = t.id
-JOIN usuarios u ON tp.professor_id = u.id
-JOIN disciplinas d ON tp.disciplina_id = d.id;
-
--- Ver alunos com suas turmas
-SELECT '=== ALUNOS ===' as '';
-SELECT a.id, a.nome, a.matricula, t.nome as turma, a.responsavel, a.contato
-FROM alunos a
-LEFT JOIN turmas t ON a.turma_id = t.id
-ORDER BY a.id;
-
--- Ver ocorrencias
-SELECT '=== OCORRENCIAS ===' as '';
-SELECT o.id, a.nome as aluno, o.tipo, o.descricao, o.data
-FROM ocorrencias o
-JOIN alunos a ON o.aluno_id = a.id
-ORDER BY o.data DESC;
