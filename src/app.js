@@ -1,18 +1,13 @@
 const express = require('express');
 const cors = require('cors');
-const path = require('path');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middlewares
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Servir arquivos estáticos da raiz
-app.use(express.static(path.join(__dirname, '..')));
 
 // Rotas
 const authRoutes = require('./routes/authRoutes');
@@ -31,18 +26,27 @@ app.use('/api/email', emailRoutes);
 app.use('/api/notas', notasRoutes);
 app.use('/api/frequencias', frequenciaRoutes);
 
-// Rota principal
+// Rota raiz - apenas API info
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'index.html'));
+    res.json({
+        name: 'Help School API',
+        version: '1.0.0',
+        status: 'online',
+        endpoints: {
+            login: 'POST /api/auth/login',
+            alunos: 'GET /api/alunos',
+            turmas: 'GET /api/turmas',
+            professores: 'GET /api/usuarios/professores',
+            notas: 'POST /api/notas',
+            frequencias: 'POST /api/frequencias'
+        }
+    });
 });
 
-// Rota de login
-app.get('/login.html', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'login.html'));
-});
+// Não tentar servir arquivos estáticos
+// app.use(express.static('.'));  // REMOVA esta linha se existir
 
 app.listen(PORT, () => {
-    console.log(`🚀 Servidor rodando na porta ${PORT}`);
-    console.log(`📋 Acesse: https://ap_itinerario.up.railway.app`);
-    console.log(`🔐 Login: POST https://ap_itinerario.up.railway.app/api/auth/login`);
+    console.log(`🚀 API rodando na porta ${PORT}`);
+    console.log(`📍 URL: https://ap_itinerario.up.railway.app`);
 });
