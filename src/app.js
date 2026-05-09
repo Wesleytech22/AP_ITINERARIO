@@ -1,10 +1,10 @@
-// src/app.js
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
 
 const app = express();
+// Usar a porta do ambiente (Railway define automaticamente)
 const PORT = process.env.PORT || 3000;
 
 // Middlewares
