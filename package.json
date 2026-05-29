@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "name": "instituto-aiye-backend",
   "version": "1.0.0",
   "description": "Backend – Instituto Aiyê | Exploradores da Mata Atlântica | Fundadoras: Patrícia & Jerusa",
@@ -20,4 +21,28 @@
   "devDependencies": {
     "nodemon": "^3.1.0"
   }
+=======
+    "name": "projeto-escolar",
+    "version": "1.0.0",
+    "description": "Sistema de gestão escolar",
+    "main": "src/app.js",
+    "scripts": {
+        "start": "node src/app.js",
+        "dev": "nodemon src/app.js"
+    },
+    "dependencies": {
+        "bcryptjs": "^2.4.3",
+        "cors": "^2.8.6",
+        "csv-parser": "^3.0.0",
+        "dotenv": "^16.6.1",
+        "express": "^4.22.1",
+        "jsonwebtoken": "^9.0.3",
+        "multer": "^1.4.5-lts.1",
+        "nodemailer": "^8.0.7",
+        "sqlite3": "^5.1.7"
+    },
+    "devDependencies": {
+        "nodemon": "^3.0.1"
+    }
+>>>>>>> 35f0742adf86c2faa55294c764daac0f3c6f1c15
 }
