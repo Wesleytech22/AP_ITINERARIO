@@ -1,6 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const db = require('../database/connection');
+const auth = require('../middleware/auth');
+const ctrl = require('../controllers/authController');
+
+router.post('/register', ctrl.register);
+router.post('/login',    ctrl.login);
+router.get('/me',        auth, ctrl.me);
+
+module.exports = router;
 const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'segredo_sistema_escolar_2026';

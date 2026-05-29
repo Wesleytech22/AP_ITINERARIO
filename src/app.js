@@ -1,37 +1,31 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
+const path = require('path');
+
+require('./database/connection');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
-// Middlewares
-app.use(cors());
+app.use(cors({ origin: process.env.FRONTEND_URL || '*', credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Rotas
-const authRoutes = require('./routes/authRoutes');
-const alunoRoutes = require('./routes/alunoRoutes');
-const turmaRoutes = require('./routes/turmaRoutes');
+app.use(express.static(path.join(__dirname, '../../public')));
 
-app.use('/api/auth', authRoutes);
-app.use('/api/alunos', alunoRoutes);
-app.use('/api/turmas', turmaRoutes);
+app.use('/api/auth',      require('./routes/authRoutes'));
+app.use('/api/animais',   require('./routes/alunoRoutes'));
+app.use('/api/progresso', require('./routes/ocorrenciaRoutes'));
+app.use('/api/jogo',      require('./routes/turmaRoutes'));
+app.use('/api/quiz',      require('./routes/ocorrenciasRoutes'));
 
-// Rota principal (mantendo a antiga para compatibilidade)
-app.get('/', (req, res) => {
-    res.json({ message: 'API Escola funcionando!' });
+app.get('/api/health', (_req, res) => {
+  res.json({ status: 'ok', app: 'Instituto Aiye - Exploradores da Mata Atlantica' });
 });
 
-app.get('/alunos', (req, res) => {
-    res.json({ message: 'Use /api/alunos para acessar os alunos' });
-});
+app.use('/api/*', (_req, res) => res.status(404).json({ erro: 'Rota nao encontrada.' }));
 
-// Iniciar servidor
 app.listen(PORT, () => {
-    console.log(`íº€ Servidor rodando na porta ${PORT}`);
-    console.log(`í³Œ Teste: http://localhost:${PORT}/`);
-    console.log(`í³Œ Login: POST http://localhost:${PORT}/api/auth/login`);
-    console.log(`í³Œ Alunos: GET http://localhost:${PORT}/api/alunos`);
+  console.log('Instituto Aiye - Backend rodando na porta ' + PORT);
 });
